@@ -3,9 +3,11 @@ from functools import lru_cache
 
 import pandas as pd
 
-import cs
+from cs import session
 
-cs = cs.session("store")
+import tables
+
+session.execute(tables.suggest_table)
 
 N = 5
 df = pd.read_parquet("./assets/final_matrix")
@@ -31,7 +33,7 @@ def run(refer_id):
     if not status:
         return
 
-    rows = cs.execute(f"""
+    rows = session.execute(f"""
         SELECT * FROM suggest
         WHERE refer_id = '{refer_id}'
     """)
@@ -42,7 +44,7 @@ def run(refer_id):
     for d in data:
         # not exist
         if d not in targets:
-            cs.execute(f"""
+            session.execute(f"""
                 INSERT INTO suggest (refer_id, target_id, referred_at)
                 VALUES ('{refer_id}', '{d}', toTimeStamp(now()))
             """)
@@ -52,7 +54,7 @@ def run(refer_id):
 
             # refresh referred_at after 60 minute
             if (datetime.now() - old.referred_at).total_seconds() / 60.0 % 18 >= 60.0:
-                cs.execute(f"""
+                session.execute(f"""
                     UPDATE suggest SET referred_at = toTimeStamp(now())
                     WHERE target_id = '{d}' and refer_id = '{refer_id}'
                 """)

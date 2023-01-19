@@ -1,8 +1,10 @@
 import sys
+import json
 
 from flask import Flask, request
 
 import producer
+from cs import session
 
 p = producer.Producer()
 
@@ -20,7 +22,24 @@ def recommend():
 
     p.send(message)
 
-    return ":"
+    return "OK"
+
+@app.route("/suggests", methods=["GET"], defaults={"refer_id": None})
+@app.route("/suggests/<refer_id>", methods=["GET"])
+def suggests(refer_id=None):
+    data = None
+
+    if refer_id:
+        data = session.execute(f"""
+                SELECT JSON * from suggest
+                WHERE refer_id = '{refer_id}'
+            """)
+    else:
+        data = session.execute(f"""
+                SELECT JSON * from suggest
+        """)
+    
+    return [json.loads(i.json) for i in data]
 
 
 if __name__ == "__main__":
