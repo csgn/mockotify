@@ -1,5 +1,7 @@
 # mockotify
 
+![app](https://github.com/mtndrms/mockotify)
+
 Spotify Music Recommendation
 
 ```bash
